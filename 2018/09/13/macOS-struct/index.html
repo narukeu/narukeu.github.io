@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>macOS 结构简介 - Luke Na</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="Luke Na"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Luke Na"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="很多朋友虽然知道 macOS ，然而并不是很了解其中的组成，本文将从底层开始，依次介绍macOS的几个重要组成部分。 说到macOS （Mac OS X、OS X），我们不能不提到它的前身 —— NeXTSTEP。 前身 1985 年，乔布斯在内部斗争失败，离开苹果创建了NeXT，在NeXT 中，他的团队基于Mach 和BSD 创建了一款类Unix 的面向对象的操作系统——NeXTSTEP，199"><meta property="og:type" content="article"><meta property="og:title" content="macOS 结构简介"><meta property="og:url" content="http://narukeu.cc/2018/09/13/macOS-struct/"><meta property="og:site_name" content="Luke Na"><meta property="og:description" content="很多朋友虽然知道 macOS ，然而并不是很了解其中的组成，本文将从底层开始，依次介绍macOS的几个重要组成部分。 说到macOS （Mac OS X、OS X），我们不能不提到它的前身 —— NeXTSTEP。 前身 1985 年，乔布斯在内部斗争失败，离开苹果创建了NeXT，在NeXT 中，他的团队基于Mach 和BSD 创建了一款类Unix 的面向对象的操作系统——NeXTSTEP，199"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="http://narukeu.cc/img/og_image.png"><meta property="article:published_time" content="2018-09-13T14:59:00.000Z"><meta property="article:modified_time" content="2023-04-15T02:05:29.142Z"><meta property="article:author" content="Luke Na"><meta property="article:tag" content="Unix"><meta property="article:tag" content="开源"><meta property="article:tag" content="macOS"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="http://narukeu.cc/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://narukeu.cc/2018/09/13/macOS-struct/"},"headline":"macOS 结构简介","image":["http://narukeu.cc/img/og_image.png"],"datePublished":"2018-09-13T14:59:00.000Z","dateModified":"2023-04-15T02:05:29.142Z","author":{"@type":"Person","name":"Luke Na"},"publisher":{"@type":"Organization","name":"Luke Na","logo":{"@type":"ImageObject"}},"description":"很多朋友虽然知道 macOS ，然而并不是很了解其中的组成，本文将从底层开始，依次介绍macOS的几个重要组成部分。 说到macOS （Mac OS X、OS X），我们不能不提到它的前身 —— NeXTSTEP。 前身 1985 年，乔布斯在内部斗争失败，离开苹果创建了NeXT，在NeXT 中，他的团队基于Mach 和BSD 创建了一款类Unix 的面向对象的操作系统——NeXTSTEP，199"}</script><link rel="canonical" href="http://narukeu.cc/2018/09/13/macOS-struct/"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.3.0"></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">Luke Na</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">存档</a><a class="navbar-item" href="/categories">目录</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="View on GitHub" href="https://github.com/narukeu"><i class="fab fa-github"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-6-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2018-09-13T14:59:00.000Z" title="2018/9/13 22:59:00">2018-09-13</time>发表</span><span class="level-item"><time dateTime="2023-04-15T02:05:29.142Z" title="2023/4/15 10:05:29">2023-04-15</time>更新</span><span class="level-item"><a class="link-muted" href="/categories/%E5%BC%80%E6%BA%90%E8%BD%AF%E4%BB%B6/">开源软件</a></span></div></div><h1 class="title is-3 is-size-4-mobile">macOS 结构简介</h1><div class="content"><p>很多朋友虽然知道 macOS ，然而并不是很了解其中的组成，本文将从底层开始，依次介绍macOS的几个重要组成部分。</p>
+<p>说到macOS （Mac OS X、OS X），我们不能不提到它的前身 —— NeXTSTEP。</p>
+<p><strong>前身</strong></p>
+<p>1985 年，乔布斯在内部斗争失败，离开苹果创建了NeXT，在NeXT 中，他的团队基于Mach 和BSD 创建了一款类Unix 的面向对象的操作系统——NeXTSTEP，1996 年乔布斯回归苹果之后，这款先进于Classic Mac OS 的操作系统也随之来到了苹果，最终取代了比较原始的Classic Mac OS。</p>
+<span id="more"></span>
+
+<p><strong>Darwin Operarting System</strong></p>
+<p>Darwin 是macOS 的基础部分（或者称为Core OS），它也是一款开放源代码的类Unix 操作系统。它大体由两部分组成：XNU 内核和Unix 工具。</p>
+<p>由于开放源代码的特性，所以一些组织正在利用苹果释出的Darwin 源码进行二次开发，比如PureDarwin 项目。</p>
+<p><strong>XNU</strong></p>
+<p>我们通常会说macOS 的内核是 “Darwin”，其实这是一个不严谨的说法，因为Darwin 不只包含内核，还包括其他东西。严格来说macOS 的内核是 XNU。 </p>
+<p>说到这里，插一句题外话，苹果有一个自相矛盾的地方，虽然macOS 已经通过Unix 认证，然而XNU 的全称和 GNU 格式一样，是XNU’s not Unix，顾名思义，XNU 不是 Unix。</p>
+<p>XNU是macOS 的核心部分，它是一款结合了微内核与宏内核特性的混合内核，它包括三个部分：Mach、BSD 和I&#x2F;O Kit。</p>
+<p><strong>Mach</strong></p>
+<p>Mach原来是一款微内核，XNU 中的Mach 来自于OSFMK 7.3 （Open Software Foundation Mach Kernel)）它负责CPU 调度、内存保护等功能。它是macOS 内核中<strong>最重要的部分</strong>，<strong>XNU 中大部分代码来自于它，而且macOS 中的可执行文件也是mach-o 格式</strong>。</p>
+<p><strong>BSD</strong></p>
+<p>XNU中包含一个经过修改的BSD，它负责进程管理、Unix 文件权限、网络堆栈、虚拟文件系统、POSIX 兼容。macOS 之所以符合单一Unix 规范，也正是因为如此。</p>
+<p><strong>I&#x2F;O Kit</strong></p>
+<p>I&#x2F;O Kit 是XNU 内核中的开源框架，可帮助开发人员为Apple 的macOS 和iOS操作系统编写设备驱动程序代码。I&#x2F;O Kit 框架由NeXTSTEP 的DriverKit 演变而来，与Mac OS 9 的设备驱动程序框架或BSD 的没有任何相似之处。</p>
+<p><strong>命令行工具</strong></p>
+<p>除了内核以外，Darwin 还包括一些Unix 工具，这些Unix 工具一些是Apple 开发，一些来自于第三方，比如FreeBSD Project、GNU Project、Apache。</p>
+<p><strong>这里说一说它的初始化程序 launchd。</strong></p>
+<p>Launchd 由苹果开发，它是一款统一服务管理框架，用于启动，停止和管理macOS中的守护进程，应用程序，进程和脚本。由于它支持多线程，所以它比传统的Unix初始化程序SysVinit 要高，launchd 同时正在被移植到 FreeBSD 平台，它的设计思想也被 systemd 所借鉴，后者成为目前Linux 发行版中的主流系统初始化程序。</p>
+<p><strong>Core Foundation</strong></p>
+<p>Core Foundation（也称为CF）是macOS和iOS中的C应用程序编程接口（API），是低级例程和包装函数的混合。</p>
+<p><strong>Quartz</strong></p>
+<p>macOS 毕竟是类Unix 操作系统，类Unix 操作系统想要进行图形化操作，必须要有一个图形框架，在Linux 上我们有X11 ，有Wayland，在macOS 中，我们有Quartz。它是一款基于PDF 技术的图形框架。</p>
+<p>作为一个类unix，不兼容X11是不可能的，如果你想在macOS 中运行X11 应用，也可以，有个开源项目叫XQuartz 了解一下。</p>
+<p><strong>Cocoa</strong></p>
+<p>Cocoa是苹果公司为Mac OS X所创建的原生面向对象的API，是Mac OS X上五大API之一（其它四个是Carbon、POSIX、X11和Java）。</p>
+<p>苹果的面向对象开发框架，用来生成Mac OS X 的应用程序。主要的开发语言为Objective-c, 一个c 的超集。Cocoa 开始于1989年9月上市的NeXTSTEP 1.0，当时没有 Foundation 框架，只有动态运行库， 称为kit,最重要的是AppKit. 1993 年NeXTSTEP 3.1 被移植到了Intel, Sparc, HP 的平台上，Foundation 首次被加入，同时Sun 和NeXT 合作开发OpenStep 也可以运行在Windows 系统上VCV。</p>
+<p>据说Cocoa API 里面到现在还有不少NS 开头的API，何为NS？NS者，NeXTSTEP 也。</p>
+<p><strong>Aqua UI</strong></p>
+<p>macOS 的桌面环境，类似Linux 中的 GNOME。</p>
+<p>不过，不是所有Mac OS X 都是 Aqua UI，在Mac OS X 早期测试版 Rhapsoy 中，用的还是经典的Classic Mac OS 界面。</p>
+<p>好了，macOS 的一些重要部件就介绍完了，感谢大家的阅读。</p>
+<p>部分资料来自百度百科 Cocoa 词条和英文维基百科 macOS Darwin launchd 条目，本文的撰写也得到了一些朋友的帮助，在此表示感谢。</p>
+</div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Unix/">Unix</a><a class="link-muted mr-2" rel="tag" href="/tags/%E5%BC%80%E6%BA%90/">开源</a><a class="link-muted mr-2" rel="tag" href="/tags/macOS/">macOS</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/03/10/rms-gnu-c-intro-and-ref/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">RMS 的 GNU C 语言学习手册</span></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar is-rounded" src="https://www.gravatar.com/avatar/3a85de06fc49cf78893fd8625b1945c8?s=128" alt="Luke Na"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">Luke Na</p><p class="is-size-6 is-block">Web Developer</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Solar System</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">5</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">5</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">8</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/narukeu" target="_blank" rel="noopener">关注我</a></div></div></div><div class="column-right-shadow is-hidden-widescreen"></div></div><div class="column column-right is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only order-3"><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/GNU/"><span class="tag">GNU</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Linux/"><span class="tag">Linux</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Unic/"><span class="tag">Unic</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Unix/"><span class="tag">Unix</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/macOS/"><span class="tag">macOS</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%BC%80%E6%BA%90/"><span class="tag">开源</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BD%91%E7%AB%99%E5%BB%BA%E8%AE%BE/"><span class="tag">网站建设</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%87%AA%E7%94%B1%E8%BD%AF%E4%BB%B6/"><span class="tag">自由软件</span><span class="tag">1</span></a></div></div></div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">Luke Na</a><p class="is-size-7"><span>&copy; 2023 Luke Na</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">除特别声明以外，网站内容采用 CC-BY-SA 4.0 授权。</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><!--!--><script src="/js/main.js" defer></script><!--!--></body></html>
